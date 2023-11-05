@@ -9,7 +9,8 @@ import Webcam from "react-webcam";
 function App() {
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
-  const [state, setstate] = useState('')
+  let extended: boolean = true
+  const [counter, setCounter] = useState(0)
   
   useEffect(() => {
     tf.ready().then(() => {
@@ -26,7 +27,7 @@ function App() {
     );
     setInterval(() => {
       detect(detector);
-    }, 250);
+    }, 200);
   };
 
   const detect = async (net: any) => {
@@ -40,7 +41,7 @@ function App() {
       const videoWidth = webcamRef.current['video']['videoWidth'];
       const videoHeight = webcamRef.current['video']['videoWidth'];
 
-      // Set video width\
+      // Set video width
       if (videoWidth !== null && webcamRef['current']['video']) {
         webcamRef.current['video']['width'] = videoWidth;
         webcamRef.current['video']['height'] = videoHeight;
@@ -48,17 +49,29 @@ function App() {
       
       // Make Detections
       const poses = await net.estimatePoses(video);
-      const kp = poses[0].keypoints
-      console.log(Math.abs(kp[6].y - kp[12].y) <= 70)
+      let kp = null
+
+      if(poses && poses[0]['keypoints']){
+        kp = poses[0]['keypoints']
+      }
       if(kp == null || kp[6].score < 0.4 || kp[12].score < 0.4){
-        setstate('move away from the camera, show shoulders and hips')
+        // setstate('move away from the camera, show shoulders and hips')
         return
       }
-      if(Math.abs(kp[6].y - kp[12].y) <= 70){
-        setstate('good')
-      } else {
-        setstate('bad')
+      console.log((kp[10].y - kp[6].y))
+      if((kp[10].y - kp[6].y) > 270 && extended == false){
+        extended = true
+        setCounter((counter) => counter + 1)
+      } else if ((kp[10].y - kp[6].y) > 0 && (kp[10].y - kp[6].y) < 150 && extended == true){
+        extended = false
       }
+
+      // if(extended == false &&  )
+      // if(Math.abs(kp[6].y - kp[12].y) <= 70){
+      //   setstate('good')
+      // } else {
+      //   setstate('bad')
+      // }
       // if(kp[6].x < kp[12].x){
       //   console.log('left')
       //   return
@@ -99,8 +112,8 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>{state}</h1>
-        <div className="beo">{state}</div>
+        <h1>{counter}</h1>
+        <h1>{String(extended)}</h1>
         <Webcam
           ref={webcamRef}
           style={{
