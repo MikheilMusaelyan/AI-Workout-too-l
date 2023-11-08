@@ -30,6 +30,12 @@ function App() {
     }, 200);
   };
 
+  const calculateDistance = (x1: number, y1: number, x2: number, y2: number): number => {
+    const deltaX = x2 - x1;
+    const deltaY = y2 - y1;  
+    return Math.sqrt(deltaX ** 2 + deltaY ** 2);
+  }
+
   const detect = async (net: any) => {
     if (
       typeof webcamRef.current !== "undefined" &&
@@ -51,20 +57,34 @@ function App() {
       const poses = await net.estimatePoses(video);
       let kp = null
 
-      if(poses && poses[0]['keypoints']){
-        kp = poses[0]['keypoints']
-      }
-      if(kp == null || kp[6].score < 0.4 || kp[12].score < 0.4){
-        // setstate('move away from the camera, show shoulders and hips')
+      if(poses && poses[0]['keypoints']) { kp = poses[0]['keypoints'] }
+      
+      if(kp == null || kp[6].score < 0.4 || kp[12].score < 0.4) {
         return
-      }
-      console.log((kp[10].y - kp[6].y))
-      if((kp[10].y - kp[6].y) > 270 && extended == false){
-        extended = true
-        setCounter((counter) => counter + 1)
-      } else if ((kp[10].y - kp[6].y) > 0 && (kp[10].y - kp[6].y) < 150 && extended == true){
-        extended = false
-      }
+      }     
+
+      console.log(`shoulder to wrist: ${(kp[10].y - kp[6].y)} shoulder to foot:  ${(kp[16].y - kp[16].y)}`)
+
+      // const SE = { x: kp[8].x - kp[6].x, y: kp[8].y - kp[6].y };
+      // const EW = { x: kp[10].x - kp[8].x, y: kp[10].y - kp[8].y };
+      // const angleRadians = Math.acos((SE.x * EW.x + SE.y * EW.y) / (Math.hypot(SE.x, SE.y) * Math.hypot(EW.x, EW.y)))
+      // const angleDegrees = (angleRadians * 180) / Math.PI;
+
+      // if(angleDegrees <= 30 && extended == false){
+      //   extended = true
+      //   setCounter((counter) => counter + 1)
+      // } else if (angleDegrees >= 100 && extended == true){
+      //   extended = false
+      // }
+
+      // if((kp[10].y - kp[6].y) > 270 && extended == false){
+      //   extended = true
+      //   console.log('extended')
+      //   setCounter((counter) => counter + 1)
+      // } else if ((kp[10].y - kp[6].y) > 0 && (kp[10].y - kp[6].y) < 150 && extended == true){
+      //   extended = false
+      //   console.log('npy extended')
+      // }
 
       // if(extended == false &&  )
       // if(Math.abs(kp[6].y - kp[12].y) <= 70){
@@ -77,28 +97,8 @@ function App() {
       //   return
       // }
       // const activeHip = activeShoulder.name == 'right_shoulder' ? poses[12] : poses[11]
-
-      // const pose = await net.estimateSinglePose(video);
-      // isClose(
-      //   poses[0].keypoints[9],
-      //   poses[0].keypoints[10],
-      //   poses[0].keypoints[0]
-      // )
-      // drawCanvas(pose, video, videoWidth, videoHeight, canvasRef);
     }
   };
-
-  // const isClose = (leftHand: any, rightHand: any, mouth: any) => {
-  //   if((leftHand.score < 0.4 && rightHand.score < 0.4) || mouth.score < 0.4){
-  //     return
-  //   }
-  //   const distLeft = Math.sqrt((leftHand.x - mouth.x) ** 2 + (leftHand.y - mouth.y) ** 2)
-  //   const distRight = Math.sqrt((rightHand.x - mouth.x) ** 2 + (rightHand.y - mouth.y) ** 2)
-  //   console.log(distLeft, distRight)
-  //   if(distLeft < 100 || distRight < 100){
-  //     console.log('HAND CLOSE TO MOUTH')
-  //   }
-  // }
 
   // const drawCanvas = (pose: any, video: any, videoWidth: any, videoHeight: any, canvas: any) => {
   //   const ctx = canvas.current.getContext("2d");
@@ -111,8 +111,9 @@ function App() {
 
   return (
     <div className="App">
-      <header className="App-header">
-        <h1>{counter}</h1>
+      <header className="App-header" style={{background: 'var(--background)', padding: '10px'}}>
+        <h1 className="card">{counter}</h1>
+        <input type="text" placeholder="sa"/>
         <h1>{String(extended)}</h1>
         <Webcam
           ref={webcamRef}

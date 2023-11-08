@@ -1,3 +1,65 @@
+body {
+    margin: 0;
+}
+
+.main {
+    padding: 25px;
+}
+
 :root {
-    --background: rgb(246,248,252)
+    --background: rgb(246,248,252);
+    --blue: rgb(69,135,244);
+    --green: rgb(52,168,83);
+    --red: rgb(234,68,55);
+    --lgBorder: rgb(229, 229, 229);
+    --lgText: rgb(224, 224, 224);
+    --boxShadowLight: 0 1px 10px rgb(237, 237, 237);
+    --white: white
+}
+
+button{
+    border: none;
+    border-radius: 5px;
+    outline: none;
+    box-shadow: var(--boxShadowLight);
+    padding: 10px;
+    background-color: var(--red);
+}
+
+.heading{
+    margin: 0;
+    font-size: 42px;
+    
+}
+
+.card {
+    border-radius: 8px;
+    background: white;
+    box-shadow: var(--boxShadowLight);
+    padding: 10px;
+}
+
+input {
+    padding: 10px;
+    border: 1px solid var(--lgBorder);
+    outline: none;
+    color: black;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+ul {
+    margin: 0;
+    padding: 0;
+}
+
+li{
+    list-style-type: none;
+    font-size: 16px;
+}
+
+@media screen and (max-width: 1200px){
+    .main{
+        padding: 15px;
+    }
 }
