@@ -11,6 +11,7 @@ function App() {
   const canvasRef = useRef(null);
   let extended: boolean = true
   const [counter, setCounter] = useState(0)
+  let count = 0
   
   useEffect(() => {
     tf.ready().then(() => {
@@ -21,20 +22,56 @@ function App() {
   const runPose = async () => {
     const detector = await poseDetection.createDetector(
       poseDetection.SupportedModels.MoveNet, 
-      {
-        modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER,
-      }
+      {modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER}
     );
     setInterval(() => {
       detect(detector);
-    }, 200);
+    }, 150);
   };
 
-  const calculateDistance = (x1: number, y1: number, x2: number, y2: number): number => {
-    const deltaX = x2 - x1;
-    const deltaY = y2 - y1;  
-    return Math.sqrt(deltaX ** 2 + deltaY ** 2);
+  // const calculateDistance = (x1: number, y1: number, x2: number, y2: number): number => {
+  //   const deltaX = x2 - x1;
+  //   const deltaY = y2 - y1;  
+  //   return Math.sqrt(deltaX ** 2 + deltaY ** 2);
+  // }
+
+  
+  // 
+  const pushup = (leftWrist: any, leftShoulder: any, leftElbow: any, nose: any) => {
+      // let angle = (
+      //   Math.atan2(
+      //     leftWrist.y - leftElbow.y,
+      //     leftWrist.x - leftElbow.x
+      //   ) - Math.atan2(
+      //     leftShoulder.y - leftElbow.y,
+      //     leftShoulder.x - leftElbow.x
+      //   )
+      // ) * (180 / Math.PI);
+
+      const SE = { x: leftElbow.x - leftShoulder.x, y: leftElbow.y - leftShoulder.y };
+      const EW = { x: leftWrist.x - leftElbow.x, y: leftWrist.y - leftElbow.y };
+      const angleRadians = Math.acos((SE.x * EW.x + SE.y * EW.y) / (Math.hypot(SE.x, SE.y) * Math.hypot(EW.x, EW.y)))
+      let angle = (angleRadians * 180) / Math.PI;
+    
+      if (leftWrist.score < 0.3 && leftElbow.score < 0.3 && leftShoulder.score < 0.3) {
+        return
+      }
+
+      if (angle >= 0 && angle < 95 && extended == false) {
+        var msg = new SpeechSynthesisUtterance(String(count+1));
+        window.speechSynthesis.speak(msg);
+        setCounter(counter => counter + 1) 
+        count += 1
+        extended = true
+        return
+      }
+
+      if ((angle > 100 && angle < 175) && extended == true && nose.y > leftElbow.y) {
+        extended = false
+      }
   }
+  
+
 
   const detect = async (net: any) => {
     if (
@@ -42,63 +79,21 @@ function App() {
       webcamRef.current !== null &&
       webcamRef.current['video']['readyState'] === 4
     ) {
-      // Get Video Properties
       const video = webcamRef.current['video'];
-      const videoWidth = webcamRef.current['video']['videoWidth'];
-      const videoHeight = webcamRef.current['video']['videoWidth'];
+      // const videoWidth = webcamRef.current['video']['videoWidth'];
+      // const videoHeight = webcamRef.current['video']['videoWidth'];
 
-      // Set video width
-      if (videoWidth !== null && webcamRef['current']['video']) {
-        webcamRef.current['video']['width'] = videoWidth;
-        webcamRef.current['video']['height'] = videoHeight;
-      }
+      // if (videoWidth !== null && webcamRef['current']['video']) {
+      //   webcamRef.current['video']['width'] = videoWidth;
+      //   webcamRef.current['video']['height'] = videoHeight;
+      // }
       
-      // Make Detections
       const poses = await net.estimatePoses(video);
-      let kp = null
 
-      if(poses && poses[0]['keypoints']) { kp = poses[0]['keypoints'] }
-      
-      if(kp == null || kp[6].score < 0.4 || kp[12].score < 0.4) {
-        return
-      }     
-
-      console.log(`shoulder to wrist: ${(kp[10].y - kp[6].y)} shoulder to foot:  ${(kp[16].y - kp[16].y)}`)
-
-      // const SE = { x: kp[8].x - kp[6].x, y: kp[8].y - kp[6].y };
-      // const EW = { x: kp[10].x - kp[8].x, y: kp[10].y - kp[8].y };
-      // const angleRadians = Math.acos((SE.x * EW.x + SE.y * EW.y) / (Math.hypot(SE.x, SE.y) * Math.hypot(EW.x, EW.y)))
-      // const angleDegrees = (angleRadians * 180) / Math.PI;
-
-      // if(angleDegrees <= 30 && extended == false){
-      //   extended = true
-      //   setCounter((counter) => counter + 1)
-      // } else if (angleDegrees >= 100 && extended == true){
-      //   extended = false
-      // }
-
-      // if((kp[10].y - kp[6].y) > 270 && extended == false){
-      //   extended = true
-      //   console.log('extended')
-      //   setCounter((counter) => counter + 1)
-      // } else if ((kp[10].y - kp[6].y) > 0 && (kp[10].y - kp[6].y) < 150 && extended == true){
-      //   extended = false
-      //   console.log('npy extended')
-      // }
-
-      // if(extended == false &&  )
-      // if(Math.abs(kp[6].y - kp[12].y) <= 70){
-      //   setstate('good')
-      // } else {
-      //   setstate('bad')
-      // }
-      // if(kp[6].x < kp[12].x){
-      //   console.log('left')
-      //   return
-      // }
-      // const activeHip = activeShoulder.name == 'right_shoulder' ? poses[12] : poses[11]
-    }
+      if(!poses || !poses[0]['keypoints']) { return }
+      pushup(poses[0].keypoints[9], poses[0].keypoints[5], poses[0].keypoints[7], poses[0].keypoints[0])
   };
+  }
 
   // const drawCanvas = (pose: any, video: any, videoWidth: any, videoHeight: any, canvas: any) => {
   //   const ctx = canvas.current.getContext("2d");
@@ -125,7 +120,7 @@ function App() {
             right: 0,
             textAlign: "center",
             zIndex: 9,
-            width: 640,
+            width: 940,
             height: 480,
           }}
         />
