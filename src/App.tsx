@@ -11,6 +11,9 @@ function App() {
   const canvasRef = useRef(null);
   let extended: boolean = true
   const [counter, setCounter] = useState(0)
+  const [HS, setHS] = useState(0)
+  const [HL, setHL] = useState(0)
+
   let count = 0
   
   useEffect(() => {
@@ -38,21 +41,11 @@ function App() {
   
   // 
   const pushup = (leftWrist: any, leftShoulder: any, leftElbow: any, nose: any) => {
-      // let angle = (
-      //   Math.atan2(
-      //     leftWrist.y - leftElbow.y,
-      //     leftWrist.x - leftElbow.x
-      //   ) - Math.atan2(
-      //     leftShoulder.y - leftElbow.y,
-      //     leftShoulder.x - leftElbow.x
-      //   )
-      // ) * (180 / Math.PI);
-
       const SE = { x: leftElbow.x - leftShoulder.x, y: leftElbow.y - leftShoulder.y };
       const EW = { x: leftWrist.x - leftElbow.x, y: leftWrist.y - leftElbow.y };
       const angleRadians = Math.acos((SE.x * EW.x + SE.y * EW.y) / (Math.hypot(SE.x, SE.y) * Math.hypot(EW.x, EW.y)))
       let angle = (angleRadians * 180) / Math.PI;
-    
+      
       if (leftWrist.score < 0.3 && leftElbow.score < 0.3 && leftShoulder.score < 0.3) {
         return
       }
@@ -70,7 +63,47 @@ function App() {
         extended = false
       }
   }
+
+  const [ang, setAng] = useState(0)
   
+  const squat = (
+    leftHip: any, rightHip: any, 
+    leftLeg: any, rightLeg: any,
+    leftS: any, rightS: any
+  ) => {
+    if(leftHip.score < 0.3 || leftHip.score < 0.3 || leftS.score < 0.3){return}
+
+    const hl = leftLeg.y - leftHip.y; 
+    const hs = leftHip.y - leftS.y
+    setHL(hl); 
+    setHS(hs);
+    
+    const magnitudeA = Math.sqrt((leftS.x ** 2) + (leftS.y ** 2))
+    const magnitudeB = Math.sqrt((leftLeg.x ** 2) + (leftLeg.y ** 2))
+    const product = (leftS.x * leftS.y) + (leftLeg.x * leftLeg.y)
+    const cosTheta = product / (magnitudeA * magnitudeB)
+
+    // Ensure that cosTheta is within the valid range [-1, 1]
+    const clampedCosTheta = Math.max(-1, Math.min(1, cosTheta));
+
+    // Calculate the angle in radians
+    const angle = Math.acos(clampedCosTheta);
+
+    // Convert the angle to degrees if needed
+    const angleDegrees = angle * (180 / Math.PI);
+    console.log(angleDegrees)
+    setAng(angleDegrees)
+   
+    return
+
+    // if(angleDegrees <= 40 && angleDegrees >= 0 && hl/hs >= 1.3 && hl/hs <= 1.9 && extended == false){
+    //   extended = true
+    //   setCounter(counter => counter + 1)
+    //   return
+    // } if (angleDegrees >= 70 && hl/hs < 1.1 && hl/hs > 0.1 && extended){
+    //   extended = false
+    // }
+  }
 
 
   const detect = async (net: any) => {
@@ -91,7 +124,12 @@ function App() {
       const poses = await net.estimatePoses(video);
 
       if(!poses || !poses[0]['keypoints']) { return }
-      pushup(poses[0].keypoints[9], poses[0].keypoints[5], poses[0].keypoints[7], poses[0].keypoints[0])
+      // pushup(poses[0].keypoints[9], poses[0].keypoints[5], poses[0].keypoints[7], poses[0].keypoints[0])
+      squat(
+        poses[0].keypoints[11], poses[0].keypoints[12], 
+        poses[0].keypoints[15], poses[0].keypoints[16],
+        poses[0].keypoints[5], poses[0].keypoints[6],
+      )
   };
   }
 
@@ -107,9 +145,9 @@ function App() {
   return (
     <div className="App">
       <header className="App-header" style={{background: 'var(--background)', padding: '10px'}}>
-        <h1 className="card">{counter}</h1>
         <input type="text" placeholder="sa"/>
-        <h1>{String(extended)}</h1>
+        <h1>{ang}</h1>
+        <h1>Relative: {String(HL/HS)}</h1>
         <Webcam
           ref={webcamRef}
           style={{
