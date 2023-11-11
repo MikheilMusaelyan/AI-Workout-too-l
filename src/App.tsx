@@ -27,9 +27,22 @@ function App() {
       poseDetection.SupportedModels.MoveNet, 
       {modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER}
     );
-    setInterval(() => {
-      detect(detector);
-    }, 150);
+    // setInterval(() => {
+    //   detect(detector);
+    // }, 150);
+    const magnitudeA = Math.sqrt((4 ** 2) + (5 ** 2))
+    const magnitudeB = Math.sqrt((7 ** 2) + (1 ** 2))
+    const product = (4 * 5) + (7 * 1)
+    const cosTheta = product / (magnitudeA * magnitudeB)
+
+    // Ensure that cosTheta is within the valid range [-1, 1]
+    const clampedCosTheta = Math.max(-1, Math.min(1, cosTheta));
+
+    // Calculate the angle in radians
+    const angle = Math.acos(clampedCosTheta);
+
+    // Convert the angle to degrees if needed
+    const angleDegrees = angle * (180 / Math.PI)
   };
 
   // const calculateDistance = (x1: number, y1: number, x2: number, y2: number): number => {
@@ -78,22 +91,8 @@ function App() {
     setHL(hl); 
     setHS(hs);
     
-    const magnitudeA = Math.sqrt((leftS.x ** 2) + (leftS.y ** 2))
-    const magnitudeB = Math.sqrt((leftLeg.x ** 2) + (leftLeg.y ** 2))
-    const product = (leftS.x * leftS.y) + (leftLeg.x * leftLeg.y)
-    const cosTheta = product / (magnitudeA * magnitudeB)
-
-    // Ensure that cosTheta is within the valid range [-1, 1]
-    const clampedCosTheta = Math.max(-1, Math.min(1, cosTheta));
-
-    // Calculate the angle in radians
-    const angle = Math.acos(clampedCosTheta);
-
-    // Convert the angle to degrees if needed
-    const angleDegrees = angle * (180 / Math.PI);
-    console.log(angleDegrees)
-    setAng(angleDegrees)
-   
+    angleBetweenVectors([leftLeg.x, leftLeg.y], [leftS.x, leftS.y])
+        
     return
 
     // if(angleDegrees <= 40 && angleDegrees >= 0 && hl/hs >= 1.3 && hl/hs <= 1.9 && extended == false){
@@ -104,6 +103,31 @@ function App() {
     //   extended = false
     // }
   }
+
+  function dotProduct(u: any, v: any) {
+    return u[0] * v[0] + u[1] * v[1];
+  }
+
+  function vectorMagnitude(v: any) {
+      return Math.sqrt(v[0] ** 2 + v[1] ** 2);
+  }
+
+  function angleBetweenVectors(u: any, v: any) {
+    const dot = dotProduct(u, v);
+    const magnitudeU = vectorMagnitude(u);
+    const magnitudeV = vectorMagnitude(v);
+
+    // Calculate the cosine of the angle
+    const cosineValue = dot / (magnitudeU * magnitudeV);
+
+    // Calculate the angle in radians
+    const angleInRadians = Math.acos(cosineValue);
+
+    // Convert radians to degrees
+    const angleInDegrees = (180 / Math.PI) * angleInRadians;
+
+    return angleInDegrees.toFixed(1);
+}
 
 
   const detect = async (net: any) => {
