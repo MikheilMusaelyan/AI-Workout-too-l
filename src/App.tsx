@@ -30,29 +30,47 @@ function App() {
     // setInterval(() => {
     //   detect(detector);
     // }, 150);
-    const magnitudeA = Math.sqrt((4 ** 2) + (5 ** 2))
-    const magnitudeB = Math.sqrt((7 ** 2) + (1 ** 2))
-    const product = (4 * 5) + (7 * 1)
-    const cosTheta = product / (magnitudeA * magnitudeB)
-
-    // Ensure that cosTheta is within the valid range [-1, 1]
-    const clampedCosTheta = Math.max(-1, Math.min(1, cosTheta));
-
-    // Calculate the angle in radians
-    const angle = Math.acos(clampedCosTheta);
-
-    // Convert the angle to degrees if needed
-    const angleDegrees = angle * (180 / Math.PI)
+    const A = [0, 0]
+    const B = [0, 1]
+    const C = [1, 0]
+    printAngle(A, B, C)
   };
 
-  // const calculateDistance = (x1: number, y1: number, x2: number, y2: number): number => {
-  //   const deltaX = x2 - x1;
-  //   const deltaY = y2 - y1;  
-  //   return Math.sqrt(deltaX ** 2 + deltaY ** 2);
-  // }
-
+  const lengthSquare = (X: any, Y: any) => { 
+    let xDiff = X[0] - Y[0]; 
+    let yDiff = X[1] - Y[1]; 
+    return xDiff*xDiff + yDiff*yDiff; 
+  } 
   
-  // 
+  const printAngle = (A: any, B: any, C: any) => { 
+    // Square of lengths be a2, b2, c2 
+    let a2 = lengthSquare(B,C); 
+    let b2 = lengthSquare(A,C); 
+    let c2 = lengthSquare(A,B); 
+  
+    // length of sides be a, b, c 
+    let a = Math.sqrt(a2); 
+    let b = Math.sqrt(b2); 
+    let c = Math.sqrt(c2); 
+  
+    // From Cosine law 
+    let alpha = Math.acos((b2 + c2 - a2)/(2*b*c)); 
+    let beta = Math.acos((a2 + c2 - b2)/(2*a*c)); 
+    let gamma = Math.acos((a2 + b2 - c2)/(2*a*b)); 
+  
+    // Converting to degree 
+    alpha = alpha * 180 / Math.PI; 
+    beta = beta * 180 / Math.PI; 
+    gamma = gamma * 180 / Math.PI; 
+  
+    // printing all the angles 
+    console.log("alpha : ", alpha); 
+    console.log("beta : ", beta); 
+    console.log("gamma : ", gamma); 
+  }
+  
+
+
   const pushup = (leftWrist: any, leftShoulder: any, leftElbow: any, nose: any) => {
       const SE = { x: leftElbow.x - leftShoulder.x, y: leftElbow.y - leftShoulder.y };
       const EW = { x: leftWrist.x - leftElbow.x, y: leftWrist.y - leftElbow.y };
@@ -84,35 +102,55 @@ function App() {
     leftLeg: any, rightLeg: any,
     leftS: any, rightS: any
   ) => {
-    if(leftHip.score < 0.3 || leftHip.score < 0.3 || leftS.score < 0.3){return}
+    if(leftLeg.score < 0.3 || leftHip.score < 0.3 || leftS.score < 0.3){return}
 
     const hl = leftLeg.y - leftHip.y; 
     const hs = leftHip.y - leftS.y
     setHL(hl); 
     setHS(hs);
+
+    // const SE = { x: leftElbow.x - leftShoulder.x, y: leftElbow.y - leftShoulder.y };
+    // const EW = { x: leftWrist.x - leftElbow.x, y: leftWrist.y - leftElbow.y };
+    // const angleRadians = Math.acos((SE.x * EW.x + SE.y * EW.y) / (Math.hypot(SE.x, SE.y) * Math.hypot(EW.x, EW.y)))
+    // let angle = (angleRadians * 180) / Math.PI;
     
-    angleBetweenVectors([leftLeg.x, leftLeg.y], [leftS.x, leftS.y])
-        
+    const IMG = { x: leftS.x, y: leftLeg.y }
+    const SI = { x: IMG.x - leftS.x, y: IMG.y - leftS.y };
+    const IL = { x: leftLeg.x - IMG.x, y: leftLeg.y - IMG.y };
+    const angleRadians = Math.acos((SI.x * IL.x + SI.y * IL.y) / (Math.hypot(SI.x, SI.y) * Math.hypot(IL.x, IL.y)))
+    let angle = (angleRadians * 180) / Math.PI;
+    setCounter(angle)
+
     return
 
-    // if(angleDegrees <= 40 && angleDegrees >= 0 && hl/hs >= 1.3 && hl/hs <= 1.9 && extended == false){
-    //   extended = true
-    //   setCounter(counter => counter + 1)
-    //   return
-    // } if (angleDegrees >= 70 && hl/hs < 1.1 && hl/hs > 0.1 && extended){
-    //   extended = false
-    // }
+    if(hl/hs >= 1.3 && hl/hs <= 1.9 && extended == false){
+      extended = true
+      setCounter(counter => counter + 1)
+      return
+    } if (hl/hs < 1.1 && hl/hs > 0.1 && extended){
+      extended = false
+    }
   }
 
-  function dotProduct(u: any, v: any) {
+  const core = (shoulder: any, hip: any, foot: any) => {
+    const SE = { x: hip.x - shoulder.x, y: hip.y - shoulder.y };
+    const EW = { x: foot.x - hip.x, y: foot.y - hip.y };
+    const angleRadians = Math.acos((SE.x * EW.x + SE.y * EW.y) / (Math.hypot(SE.x, SE.y) * Math.hypot(EW.x, EW.y)))
+    let angle = (angleRadians * 180) / Math.PI;
+    setCounter(angle)
+  }
+
+// ANGLES
+
+  const dotProduct = (u: any, v: any) => {
     return u[0] * v[0] + u[1] * v[1];
   }
 
-  function vectorMagnitude(v: any) {
-      return Math.sqrt(v[0] ** 2 + v[1] ** 2);
+  const vectorMagnitude = (v: any) => {
+    return Math.sqrt(v[0] ** 2 + v[1] ** 2);
   }
 
-  function angleBetweenVectors(u: any, v: any) {
+  const angleBetweenVectors = (u: any, v: any): number => {
     const dot = dotProduct(u, v);
     const magnitudeU = vectorMagnitude(u);
     const magnitudeV = vectorMagnitude(v);
@@ -124,10 +162,12 @@ function App() {
     const angleInRadians = Math.acos(cosineValue);
 
     // Convert radians to degrees
-    const angleInDegrees = (180 / Math.PI) * angleInRadians;
+    const angleInDegrees: number = (180 / Math.PI) * angleInRadians;
 
-    return angleInDegrees.toFixed(1);
+    return Number(angleInDegrees.toFixed(1));
 }
+
+// ANGLES
 
 
   const detect = async (net: any) => {
@@ -137,23 +177,17 @@ function App() {
       webcamRef.current['video']['readyState'] === 4
     ) {
       const video = webcamRef.current['video'];
-      // const videoWidth = webcamRef.current['video']['videoWidth'];
-      // const videoHeight = webcamRef.current['video']['videoWidth'];
-
-      // if (videoWidth !== null && webcamRef['current']['video']) {
-      //   webcamRef.current['video']['width'] = videoWidth;
-      //   webcamRef.current['video']['height'] = videoHeight;
-      // }
-      
       const poses = await net.estimatePoses(video);
 
-      if(!poses || !poses[0]['keypoints']) { return }
+      if(!poses || !poses[0]['keypoints']) return
+      
       // pushup(poses[0].keypoints[9], poses[0].keypoints[5], poses[0].keypoints[7], poses[0].keypoints[0])
-      squat(
-        poses[0].keypoints[11], poses[0].keypoints[12], 
-        poses[0].keypoints[15], poses[0].keypoints[16],
-        poses[0].keypoints[5], poses[0].keypoints[6],
-      )
+      // squat(
+      //   poses[0].keypoints[11], poses[0].keypoints[12], 
+      //   poses[0].keypoints[15], poses[0].keypoints[16],
+      //   poses[0].keypoints[5], poses[0].keypoints[6],
+      // )
+      core(poses[0].keypoints[5], poses[0].keypoints[11], poses[0].keypoints[15])
   };
   }
 
@@ -170,8 +204,7 @@ function App() {
     <div className="App">
       <header className="App-header" style={{background: 'var(--background)', padding: '10px'}}>
         <input type="text" placeholder="sa"/>
-        <h1>{ang}</h1>
-        <h1>Relative: {String(HL/HS)}</h1>
+        <h1>{counter}</h1>
         <Webcam
           ref={webcamRef}
           style={{
