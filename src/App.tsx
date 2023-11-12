@@ -27,36 +27,32 @@ function App() {
       poseDetection.SupportedModels.MoveNet, 
       {modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER}
     );
-    // setInterval(() => {
-    //   detect(detector);
-    // }, 150);
-    const A = [0, 0]
-    const B = [0, 1]
-    const C = [1, 0]
-    printAngle(A, B, C)
+    setInterval(() => {
+      detect(detector);
+    }, 150);
   };
 
-  const lengthSquare = (X: any, Y: any) => { 
-    let xDiff = X[0] - Y[0]; 
-    let yDiff = X[1] - Y[1]; 
+  const lengthSquare = (X: number[], Y: number[]): number => { 
+    let xDiff: number = X[0] - Y[0]; 
+    let yDiff: number = X[1] - Y[1]; 
     return xDiff*xDiff + yDiff*yDiff; 
   } 
   
-  const printAngle = (A: any, B: any, C: any) => { 
+  const getAngles = (A: number[], B: number[], C: number[]): number[] => { 
     // Square of lengths be a2, b2, c2 
-    let a2 = lengthSquare(B,C); 
-    let b2 = lengthSquare(A,C); 
-    let c2 = lengthSquare(A,B); 
+    let a2: number = lengthSquare(B,C); 
+    let b2: number = lengthSquare(A,C); 
+    let c2: number = lengthSquare(A,B); 
   
     // length of sides be a, b, c 
-    let a = Math.sqrt(a2); 
-    let b = Math.sqrt(b2); 
-    let c = Math.sqrt(c2); 
+    let a: number = Math.sqrt(a2); 
+    let b: number = Math.sqrt(b2); 
+    let c: number = Math.sqrt(c2); 
   
     // From Cosine law 
-    let alpha = Math.acos((b2 + c2 - a2)/(2*b*c)); 
-    let beta = Math.acos((a2 + c2 - b2)/(2*a*c)); 
-    let gamma = Math.acos((a2 + b2 - c2)/(2*a*b)); 
+    let alpha: number = Math.acos((b2 + c2 - a2)/(2*b*c)); 
+    let beta: number = Math.acos((a2 + c2 - b2)/(2*a*c)); 
+    let gamma: number = Math.acos((a2 + b2 - c2)/(2*a*b)); 
   
     // Converting to degree 
     alpha = alpha * 180 / Math.PI; 
@@ -64,13 +60,9 @@ function App() {
     gamma = gamma * 180 / Math.PI; 
   
     // printing all the angles 
-    console.log("alpha : ", alpha); 
-    console.log("beta : ", beta); 
-    console.log("gamma : ", gamma); 
+    return [alpha, beta, gamma] 
   }
   
-
-
   const pushup = (leftWrist: any, leftShoulder: any, leftElbow: any, nose: any) => {
       const SE = { x: leftElbow.x - leftShoulder.x, y: leftElbow.y - leftShoulder.y };
       const EW = { x: leftWrist.x - leftElbow.x, y: leftWrist.y - leftElbow.y };
@@ -81,17 +73,14 @@ function App() {
         return
       }
 
-      if (angle >= 0 && angle < 95 && extended == false) {
+      if (angle >= 0 && angle < 95 && extended == true) {
         var msg = new SpeechSynthesisUtterance(String(count+1));
         window.speechSynthesis.speak(msg);
         setCounter(counter => counter + 1) 
         count += 1
-        extended = true
-        return
-      }
-
-      if ((angle > 100 && angle < 175) && extended == true && nose.y > leftElbow.y) {
         extended = false
+      } else if ((angle > 100 && angle < 175) && extended == false && nose.y > leftElbow.y) {
+        extended = true
       }
   }
 
@@ -102,33 +91,21 @@ function App() {
     leftLeg: any, rightLeg: any,
     leftS: any, rightS: any
   ) => {
-    if(leftLeg.score < 0.3 || leftHip.score < 0.3 || leftS.score < 0.3){return}
+    if(leftLeg.score < 0.3 || leftHip.score < 0.3 || leftS.score < 0.3) return
 
-    const hl = leftLeg.y - leftHip.y; 
-    const hs = leftHip.y - leftS.y
+    const hl: number = leftLeg.y - leftHip.y; 
+    const hs: number = leftHip.y - leftS.y
     setHL(hl); 
     setHS(hs);
-
-    // const SE = { x: leftElbow.x - leftShoulder.x, y: leftElbow.y - leftShoulder.y };
-    // const EW = { x: leftWrist.x - leftElbow.x, y: leftWrist.y - leftElbow.y };
-    // const angleRadians = Math.acos((SE.x * EW.x + SE.y * EW.y) / (Math.hypot(SE.x, SE.y) * Math.hypot(EW.x, EW.y)))
-    // let angle = (angleRadians * 180) / Math.PI;
     
-    const IMG = { x: leftS.x, y: leftLeg.y }
-    const SI = { x: IMG.x - leftS.x, y: IMG.y - leftS.y };
-    const IL = { x: leftLeg.x - IMG.x, y: leftLeg.y - IMG.y };
-    const angleRadians = Math.acos((SI.x * IL.x + SI.y * IL.y) / (Math.hypot(SI.x, SI.y) * Math.hypot(IL.x, IL.y)))
-    let angle = (angleRadians * 180) / Math.PI;
-    setCounter(angle)
-
-    return
-
-    if(hl/hs >= 1.3 && hl/hs <= 1.9 && extended == false){
-      extended = true
-      setCounter(counter => counter + 1)
-      return
-    } if (hl/hs < 1.1 && hl/hs > 0.1 && extended){
+    // leg hip shoulder, bottom to top
+    const angle: number = getAngles([leftLeg.x, leftLeg.y], [leftHip.x, leftHip.y], [leftS.x, leftS.y])[1]
+    
+    if(hl/hs >= 1.65 && hl/hs <= 2.2 && extended){
       extended = false
+      setCounter(counter => counter + 1)
+    } else if (hl/hs < 1.65 && extended == false && angle >= 165 && angle <= 205){
+      extended = true
     }
   }
 
@@ -138,6 +115,33 @@ function App() {
     const angleRadians = Math.acos((SE.x * EW.x + SE.y * EW.y) / (Math.hypot(SE.x, SE.y) * Math.hypot(EW.x, EW.y)))
     let angle = (angleRadians * 180) / Math.PI;
     setCounter(angle)
+  }
+
+  // jumpingJack(
+  //   poses[0].keypoints[7], poses[0].keypoints[8],
+  //   poses[0].keypoints[5], poses[0].keypoints[6],
+  //   poses[0].keypoints[15], poses[0].keypoints[16],
+  // )
+
+  const jumpingJack = (
+    lElbow: any, rElbow: any,
+    lShoulder: any, rShoulder: any,
+    lFoot: any, rFoot: any
+  ) => {
+    if(
+      lElbow.y > lShoulder.y && rElbow.y > rShoulder.y &&
+      (lFoot.x - rFoot.x) < (lShoulder.x - rShoulder.x) &&
+      extended
+    ) {
+      extended = false
+      setCounter(counter => counter + 1)
+    } else if(
+      lElbow.y < lShoulder.y && rElbow.y < rShoulder.y &&
+      (lFoot.x - rFoot.x) > (lShoulder.x - rShoulder.x) &&
+      extended == false
+    ) {
+      extended = true
+    }
   }
 
 // ANGLES
@@ -182,12 +186,12 @@ function App() {
       if(!poses || !poses[0]['keypoints']) return
       
       // pushup(poses[0].keypoints[9], poses[0].keypoints[5], poses[0].keypoints[7], poses[0].keypoints[0])
-      // squat(
-      //   poses[0].keypoints[11], poses[0].keypoints[12], 
-      //   poses[0].keypoints[15], poses[0].keypoints[16],
-      //   poses[0].keypoints[5], poses[0].keypoints[6],
-      // )
-      core(poses[0].keypoints[5], poses[0].keypoints[11], poses[0].keypoints[15])
+      squat(
+        poses[0].keypoints[11], poses[0].keypoints[12], 
+        poses[0].keypoints[15], poses[0].keypoints[16],
+        poses[0].keypoints[5], poses[0].keypoints[6],
+      )
+      // core(poses[0].keypoints[5], poses[0].keypoints[11], poses[0].keypoints[15])
   };
   }
 
