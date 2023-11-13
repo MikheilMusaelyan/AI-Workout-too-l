@@ -38,29 +38,23 @@ function App() {
     return xDiff*xDiff + yDiff*yDiff; 
   } 
   
-  const getAngles = (A: number[], B: number[], C: number[]): number[] => { 
+  const getAngle = (A: number[], B: number[], C: number[]): number => { 
     // Square of lengths be a2, b2, c2 
     let a2: number = lengthSquare(B,C); 
     let b2: number = lengthSquare(A,C); 
     let c2: number = lengthSquare(A,B); 
   
     // length of sides be a, b, c 
-    let a: number = Math.sqrt(a2); 
     let b: number = Math.sqrt(b2); 
     let c: number = Math.sqrt(c2); 
   
     // From Cosine law 
     let alpha: number = Math.acos((b2 + c2 - a2)/(2*b*c)); 
-    let beta: number = Math.acos((a2 + c2 - b2)/(2*a*c)); 
-    let gamma: number = Math.acos((a2 + b2 - c2)/(2*a*b)); 
   
     // Converting to degree 
     alpha = alpha * 180 / Math.PI; 
-    beta = beta * 180 / Math.PI; 
-    gamma = gamma * 180 / Math.PI; 
   
-    // printing all the angles 
-    return [alpha, beta, gamma] 
+    return alpha
   }
   
   const pushup = (leftWrist: any, leftShoulder: any, leftElbow: any, nose: any) => {
@@ -99,7 +93,7 @@ function App() {
     setHS(hs);
     
     // leg hip shoulder, bottom to top
-    const angle: number = getAngles([leftLeg.x, leftLeg.y], [leftHip.x, leftHip.y], [leftS.x, leftS.y])[1]
+    const angle: number = getAngle([leftHip.x, leftHip.y], [leftS.x, leftS.y], [leftLeg.x, leftLeg.y],)
     
     if(hl/hs >= 1.65 && hl/hs <= 2.2 && extended){
       extended = false
@@ -141,6 +135,23 @@ function App() {
       extended == false
     ) {
       extended = true
+    }
+  }
+
+  const plank = (
+    foot: any, knee: any, hip: any, shoulder: any
+  ) => {
+    const kneeAngle: number = getAngle([knee.x, knee.y], [foot.x, foot.y], [hip.x, hip.y])
+    const bodyAngle: number = getAngle([hip.x, hip.y], [foot.x, foot.y], [shoulder.x, shoulder.y])
+    const bodyAngle2: number = getAngle([shoulder.x, foot.y], [foot.x, foot.y], [shoulder.x, shoulder.y])
+    if(
+      kneeAngle <= 190 && kneeAngle > 175 && 
+      bodyAngle <= 190 && bodyAngle > 175 &&
+      bodyAngle2 // calculate while practicing, set the standart
+    ){
+      // balanced = true
+    } else {
+      // balanced = false
     }
   }
 
