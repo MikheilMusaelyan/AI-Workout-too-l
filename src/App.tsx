@@ -39,31 +39,33 @@ function App() {
   } 
   
   const getAngle = (A: number[], B: number[], C: number[]): number => { 
-    // Square of lengths be a2, b2, c2 
+    // Square of lengths a2, b2, c2
     let a2: number = lengthSquare(B,C); 
     let b2: number = lengthSquare(A,C); 
     let c2: number = lengthSquare(A,B); 
   
-    // length of sides be a, b, c 
+    // length of sides b, c 
     let b: number = Math.sqrt(b2); 
     let c: number = Math.sqrt(c2); 
   
     // From Cosine law 
     let alpha: number = Math.acos((b2 + c2 - a2)/(2*b*c)); 
   
-    // Converting to degree 
+    // Converting to a degree 
     alpha = alpha * 180 / Math.PI; 
   
     return alpha
   }
   
-  const pushup = (leftWrist: any, leftShoulder: any, leftElbow: any, nose: any) => {
-      const SE = { x: leftElbow.x - leftShoulder.x, y: leftElbow.y - leftShoulder.y };
+  const pushup = (leftWrist: any, leftS: any, leftElbow: any, nose: any) => {
+      const SE = { x: leftElbow.x - leftS.x, y: leftElbow.y - leftS.y };
       const EW = { x: leftWrist.x - leftElbow.x, y: leftWrist.y - leftElbow.y };
       const angleRadians = Math.acos((SE.x * EW.x + SE.y * EW.y) / (Math.hypot(SE.x, SE.y) * Math.hypot(EW.x, EW.y)))
       let angle = (angleRadians * 180) / Math.PI;
+
+      // or const angle: number = getAngle([leftElbow.x, leftElbow.y], [leftS.x, leftS.y], [leftWrist.x, leftWrist.y])
       
-      if (leftWrist.score < 0.3 && leftElbow.score < 0.3 && leftShoulder.score < 0.3) {
+      if (leftWrist.score < 0.3 && leftElbow.score < 0.3 && leftS.score < 0.3) {
         return
       }
 
@@ -73,12 +75,10 @@ function App() {
         setCounter(counter => counter + 1) 
         count += 1
         extended = false
-      } else if ((angle > 100 && angle < 175) && extended == false && nose.y > leftElbow.y) {
+      } else if ((angle > 130 && angle <= 180) && extended == false && nose.y > leftElbow.y) {
         extended = true
       }
   }
-
-  const [ang, setAng] = useState(0)
   
   const squat = (
     leftHip: any, rightHip: any, 
@@ -89,8 +89,6 @@ function App() {
 
     const hl: number = leftLeg.y - leftHip.y; 
     const hs: number = leftHip.y - leftS.y
-    setHL(hl); 
-    setHS(hs);
     
     // leg hip shoulder, bottom to top
     const angle: number = getAngle([leftHip.x, leftHip.y], [leftS.x, leftS.y], [leftLeg.x, leftLeg.y],)
@@ -155,35 +153,58 @@ function App() {
     }
   }
 
-// ANGLES
+  let c: number = 0
+  let isErr: boolean = false
+  let T: any = null
+  let left: boolean = false
 
-  const dotProduct = (u: any, v: any) => {
-    return u[0] * v[0] + u[1] * v[1];
+  const highKnees = (
+    lFoot: any, rFoot: any,
+    lKnee: any, rKnee: any,
+    lWrist: any, rWrist: any,
+    lHip: any, rHip: any,
+    lShoulder: any, rShoulder: any
+  ) => {
+    const hl: number = lFoot.y - lHip.y; 
+    const hs: number = lHip.y - lShoulder.y
+    const angleL: number = getAngle([lHip.x, lHip.y], [lShoulder.x, lShoulder.y], [lFoot.x, lFoot.y])
+
+    const hl2: number = rFoot.y - rHip.y
+    const hs2: number = rHip.y - rShoulder.y
+    const angleR: number = getAngle([rHip.x, rHip.y], [rShoulder.x, rShoulder.y], [rFoot.x, rFoot.y])
+    
+    if(((angleL < 160 || angleL > 200) && (angleR < 160 || angleR > 200)) || (hl <= hs && hl2 <= hs2)){
+      console.log('stand in the right position')
+      if(!isErr){return hkT()}
+    } if(
+      lWrist.y < lShoulder.y || lWrist.y > lHip.y || rWrist.y < rShoulder.y || rWrist > rHip.y
+    ){
+      console.log('keep your wrists to your stomach level')
+      if(!isErr){return hkT()}
+    } 
+    if(lKnee.y < rHip.y && left == false){
+      left = true
+      c++
+    } else if(rKnee.y > lHip.y && left){
+      left = false
+      c++
+    } else {
+      console.log('move your knees above your hips')
+    }
+    if(c >= 2){
+      clearTimeout(T)
+    }
   }
 
-  const vectorMagnitude = (v: any) => {
-    return Math.sqrt(v[0] ** 2 + v[1] ** 2);
+  const hkT = () => {
+    isErr = true
+    c = 0
+    T = setTimeout(() => {
+      console.log('Do it again')
+    }, 1500)
   }
 
-  const angleBetweenVectors = (u: any, v: any): number => {
-    const dot = dotProduct(u, v);
-    const magnitudeU = vectorMagnitude(u);
-    const magnitudeV = vectorMagnitude(v);
-
-    // Calculate the cosine of the angle
-    const cosineValue = dot / (magnitudeU * magnitudeV);
-
-    // Calculate the angle in radians
-    const angleInRadians = Math.acos(cosineValue);
-
-    // Convert radians to degrees
-    const angleInDegrees: number = (180 / Math.PI) * angleInRadians;
-
-    return Number(angleInDegrees.toFixed(1));
-}
-
-// ANGLES
-
+  
 
   const detect = async (net: any) => {
     if (
