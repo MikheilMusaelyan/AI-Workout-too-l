@@ -15,7 +15,9 @@ function App() {
   const [HL, setHL] = useState(0)
 
   let count = 0
-  
+  let interval: any = null
+  let to: any = null
+
   useEffect(() => {
     tf.ready().then(() => {
       runPose();
@@ -27,10 +29,24 @@ function App() {
       poseDetection.SupportedModels.MoveNet, 
       {modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER}
     );
-    setInterval(() => {
-      detect(detector);
-    }, 150);
+    
+    toStarter(detector)
   };
+
+  const toStarter = (detector: any) => {
+    intStarter(detector)
+    setTimeout(() => {
+      clearInterval(interval)
+      setTimeout(() => {
+        toStarter(detector)
+      }, 15000);
+    }, 30000)
+  }
+  const intStarter = (detector: any) => {
+    interval = setInterval(() => {
+      detect(detector);
+    }, 250);
+  }
 
   const lengthSquare = (X: number[], Y: number[]): number => { 
     let xDiff: number = X[0] - Y[0]; 
@@ -79,6 +95,8 @@ function App() {
         extended = true
       }
   }
+  const [s, sets] = useState(0)
+  const [angle, setAngle] = useState(0)
   
   const squat = (
     leftHip: any, rightHip: any, 
@@ -87,16 +105,16 @@ function App() {
   ) => {
     if(leftLeg.score < 0.3 || leftHip.score < 0.3 || leftS.score < 0.3) return
 
-    const hl: number = leftLeg.y - leftHip.y; 
-    const hs: number = leftHip.y - leftS.y
+    const lhsDiff: number = (leftLeg.y - leftHip.y) / (leftHip.y - leftS.y)
+    const lhsDiff2: number = (rightLeg.y - rightHip.y) / (rightHip.y - rightS.y)
     
-    // leg hip shoulder, bottom to top
     const angle: number = getAngle([leftHip.x, leftHip.y], [leftS.x, leftS.y], [leftLeg.x, leftLeg.y],)
-    
-    if(hl/hs >= 1.65 && hl/hs <= 2.2 && extended){
+    setAngle(angle)
+    sets(lhsDiff)
+    if(lhsDiff >= 1.5 && lhsDiff <= 2.5 && lhsDiff2 >= 1.5 && lhsDiff2 <= 2.5 && extended && angle >= 160 && angle <= 200){
       extended = false
       setCounter(counter => counter + 1)
-    } else if (hl/hs < 1.65 && extended == false && angle >= 165 && angle <= 205){
+    } else if (lhsDiff < 1.2 && lhsDiff2 < 1.2 && extended == false && angle >= 160 && angle <= 200){
       extended = true
     }
   }
@@ -156,7 +174,6 @@ function App() {
   let c: number = 0
   let isErr: boolean = false
   let T: any = null
-  let left: boolean = false
 
   const highKnees = (
     lFoot: any, rFoot: any,
@@ -182,14 +199,15 @@ function App() {
       console.log('keep your wrists to your stomach level')
       if(!isErr){return hkT()}
     } 
-    if(lKnee.y < rHip.y && left == false){
-      left = true
+    if(lKnee.y < rHip.y && c % 2 == 0){
       c++
-    } else if(rKnee.y > lHip.y && left){
-      left = false
+      if(!isErr){ hkT()}
+    } else if(rKnee.y > lHip.y && c % 2 == 1){
       c++
+      if(!isErr){hkT()}
     } else {
       console.log('move your knees above your hips')
+      if(!isErr){hkT()}
     }
     if(c >= 2){
       clearTimeout(T)
@@ -215,7 +233,7 @@ function App() {
       const video = webcamRef.current['video'];
       const poses = await net.estimatePoses(video);
 
-      if(!poses || !poses[0]['keypoints']) return
+      if(!poses || !poses[0]?.keypoints) return
       
       // pushup(poses[0].keypoints[9], poses[0].keypoints[5], poses[0].keypoints[7], poses[0].keypoints[0])
       squat(
@@ -241,6 +259,8 @@ function App() {
       <header className="App-header" style={{background: 'var(--background)', padding: '10px'}}>
         <input type="text" placeholder="sa"/>
         <h1>{counter}</h1>
+        <h1>{s}</h1>
+        <h1>{angle}</h1>
         <Webcam
           ref={webcamRef}
           style={{
