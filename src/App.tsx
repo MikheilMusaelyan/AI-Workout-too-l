@@ -30,22 +30,58 @@ function App() {
       {modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER}
     );
     
-    toStarter(detector)
-  };
-
-  const toStarter = (detector: any) => {
-    intStarter(detector)
-    setTimeout(() => {
-      clearInterval(interval)
-      setTimeout(() => {
-        toStarter(detector)
-      }, 15000);
-    }, 30000)
-  }
-  const intStarter = (detector: any) => {
-    interval = setInterval(() => {
+    setInterval(() => {
       detect(detector);
     }, 250);
+  };
+
+  // const toStarter = (detector: any) => {
+  //   intStarter(detector)
+  //   setTimeout(() => {
+  //     clearInterval(interval)
+  //     setTimeout(() => {
+  //       toStarter(detector)
+  //     }, 15000);
+  //   }, 30000)
+  // }
+
+  // const intStarter = (detector: any) => {
+  //   interval = setInterval(() => {
+  //     detect(detector);
+  //   }, 250);
+  // }
+
+  const detect = async (net: any) => {
+    if (
+      typeof webcamRef.current !== "undefined" &&
+      webcamRef.current !== null &&
+      webcamRef.current['video']['readyState'] === 4
+    ) {
+      const video = webcamRef.current['video'];
+      const poses = await net.estimatePoses(video);
+
+      if(!poses || !poses[0]?.keypoints) return
+      
+      // pushup(poses[0].keypoints[9], poses[0].keypoints[5], poses[0].keypoints[7], poses[0].keypoints[0])
+      // squat(
+      //   poses[0].keypoints[11], poses[0].keypoints[12], 
+      //   poses[0].keypoints[15], poses[0].keypoints[16],
+      //   poses[0].keypoints[5], poses[0].keypoints[6],
+      // )
+      // core(poses[0].keypoints[5], poses[0].keypoints[11], poses[0].keypoints[15])
+      // jumpingJack(
+      //   poses[0].keypoints[7], poses[0].keypoints[8],
+      //   poses[0].keypoints[5], poses[0].keypoints[6],
+      //   poses[0].keypoints[15], poses[0].keypoints[16],
+      // )
+      highKnees(
+        poses[0].keypoints[15], poses[0].keypoints[16],
+        poses[0].keypoints[13], poses[0].keypoints[14],
+        poses[0].keypoints[11], poses[0].keypoints[12],
+        poses[0].keypoints[9], poses[0].keypoints[10],
+        poses[0].keypoints[5], poses[0].keypoints[6],
+      )
+    };
   }
 
   const lengthSquare = (X: number[], Y: number[]): number => { 
@@ -127,12 +163,6 @@ function App() {
     setCounter(angle)
   }
 
-  // jumpingJack(
-  //   poses[0].keypoints[7], poses[0].keypoints[8],
-  //   poses[0].keypoints[5], poses[0].keypoints[6],
-  //   poses[0].keypoints[15], poses[0].keypoints[16],
-  // )
-
   const jumpingJack = (
     lElbow: any, rElbow: any,
     lShoulder: any, rShoulder: any,
@@ -178,37 +208,37 @@ function App() {
   const highKnees = (
     lFoot: any, rFoot: any,
     lKnee: any, rKnee: any,
-    lWrist: any, rWrist: any,
     lHip: any, rHip: any,
+    lWrist: any, rWrist: any,
     lShoulder: any, rShoulder: any
-  ) => {
-    const hl: number = lFoot.y - lHip.y; 
-    const hs: number = lHip.y - lShoulder.y
-    const angleL: number = getAngle([lHip.x, lHip.y], [lShoulder.x, lShoulder.y], [lFoot.x, lFoot.y])
+  ) => {    
+    const hl: number = lFoot?.y - lHip?.y; 
+    const hs: number = lHip?.y - lShoulder?.y
+    const angleL: number = getAngle([lHip?.x, lHip?.y], [lShoulder?.x, lShoulder?.y], [lFoot?.x, lFoot?.y])
 
-    const hl2: number = rFoot.y - rHip.y
-    const hs2: number = rHip.y - rShoulder.y
-    const angleR: number = getAngle([rHip.x, rHip.y], [rShoulder.x, rShoulder.y], [rFoot.x, rFoot.y])
+    const hl2: number = rFoot?.y - rHip?.y
+    const hs2: number = rHip?.y - rShoulder?.y
+    const angleR: number = getAngle([rHip?.x, rHip?.y], [rShoulder?.x, rShoulder?.y], [rFoot?.x, rFoot?.y])
     
     if(((angleL < 160 || angleL > 200) && (angleR < 160 || angleR > 200)) || (hl <= hs && hl2 <= hs2)){
       console.log('stand in the right position')
       if(!isErr){return hkT()}
     } if(
-      lWrist.y < lShoulder.y || lWrist.y > lHip.y || rWrist.y < rShoulder.y || rWrist > rHip.y
+      lWrist?.y < lShoulder?.y || lWrist?.y > lHip?.y || rWrist?.y < rShoulder?.y || rWrist > rHip?.y
     ){
-      console.log('keep your wrists to your stomach level')
       if(!isErr){return hkT()}
-    } 
-    if(lKnee.y < rHip.y && c % 2 == 0){
+    }
+
+    if(lKnee?.y < rHip?.y && c % 2 == 0){
       c++
-      if(!isErr){ hkT()}
-    } else if(rKnee.y > lHip.y && c % 2 == 1){
+      if(!isErr){hkT()}
+    } else if(rKnee?.y > lHip?.y && c % 2 == 1){
       c++
       if(!isErr){hkT()}
     } else {
-      console.log('move your knees above your hips')
       if(!isErr){hkT()}
     }
+    
     if(c >= 2){
       clearTimeout(T)
     }
@@ -222,28 +252,7 @@ function App() {
     }, 1500)
   }
 
-  
 
-  const detect = async (net: any) => {
-    if (
-      typeof webcamRef.current !== "undefined" &&
-      webcamRef.current !== null &&
-      webcamRef.current['video']['readyState'] === 4
-    ) {
-      const video = webcamRef.current['video'];
-      const poses = await net.estimatePoses(video);
-
-      if(!poses || !poses[0]?.keypoints) return
-      
-      // pushup(poses[0].keypoints[9], poses[0].keypoints[5], poses[0].keypoints[7], poses[0].keypoints[0])
-      squat(
-        poses[0].keypoints[11], poses[0].keypoints[12], 
-        poses[0].keypoints[15], poses[0].keypoints[16],
-        poses[0].keypoints[5], poses[0].keypoints[6],
-      )
-      // core(poses[0].keypoints[5], poses[0].keypoints[11], poses[0].keypoints[15])
-  };
-  }
 
   // const drawCanvas = (pose: any, video: any, videoWidth: any, videoHeight: any, canvas: any) => {
   //   const ctx = canvas.current.getContext("2d");
