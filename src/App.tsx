@@ -20,7 +20,7 @@ function App() {
 
   useEffect(() => {
     tf.ready().then(() => {
-      runPose();
+      // runPose();
     });
   }, []);
 
@@ -264,9 +264,24 @@ function App() {
   // };
 
   return (
-    <div className="App">
-      <header className="App-header" style={{background: 'var(--background)', padding: '10px'}}>
-        <input type="text" placeholder="sa"/>
+    <>
+        <nav>
+          <ul>
+            <li className="logo-li">Logo</li>
+            <li>About Us</li>
+            <li>About Us</li>
+            <li>About Us</li>
+          </ul>
+        </nav>
+        <div className="home">
+          <div className="home-text-wrap">
+            <h1 className="home-h1">
+              <span className="home-span">Upgrade</span> 
+              <span className="home-span blue">Your Body</span>
+            </h1>
+          </div>
+        </div>
+        {/* <input type="text" placeholder="sa"/>
         <h1>{counter}</h1>
         <h1>{s}</h1>
         <h1>{angle}</h1>
@@ -298,9 +313,8 @@ function App() {
             width: 640,
             height: 480,
           }}
-        />
-      </header>
-    </div>
+        /> */}
+    </>
   );
 }
 
