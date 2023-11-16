@@ -2,8 +2,8 @@ import { useRef, useState, useEffect } from "react";
 import "./App.css";
 import * as tf from "@tensorflow/tfjs";
 import * as poseDetection from '@tensorflow-models/pose-detection';
-
 import Webcam from "react-webcam";
+import Vl from "./vl/vl";
 // import { drawKeypoints, drawSkeleton } from "./utilities";
 
 function App() {
@@ -274,23 +274,21 @@ function App() {
           </ul>
         </nav>
         <div className="home">
-          <div className="home-text-wrap">
+          <section className="home-text-wrap">
             <h1 className="home-h1">
               <span className="home-span">Upgrade</span> 
               <span className="home-span blue">Your Body</span>
             </h1>
-          </div>
-          <div className="vertical-line-wrap">
-            <div className="vertical-line"><div className="vl black"></div></div>
-            <div className="vertical-line"><div className="vl yellow"></div><div className="vl black"></div></div>
-            <div className="vertical-line"><div className="vl black"></div></div>
-            <div className="vertical-line"><div className="vl pink"></div></div>
-            <div className="vertical-line"><div className="vl black"></div></div>
-            <div className="vertical-line"><div className="vl black"></div></div>
-            <div className="vertical-line"><div className="vl black"></div><div className="vl black"></div></div>
-            <div className="vertical-line"><div className="vl black"></div></div>
-          </div>
+          </section>
+
+          <section className="skeleton">
+
+          </section>
+          
+          <Vl></Vl>
+          
         </div>
+
         {/* <input type="text" placeholder="sa"/>
         <h1>{counter}</h1>
         <h1>{s}</h1>
