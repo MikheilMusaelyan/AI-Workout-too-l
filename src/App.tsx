@@ -280,6 +280,16 @@ function App() {
               <span className="home-span blue">Your Body</span>
             </h1>
           </div>
+          <div className="vertical-line-wrap">
+            <div className="vertical-line"><div className="vl black"></div></div>
+            <div className="vertical-line"><div className="vl yellow"></div><div className="vl black"></div></div>
+            <div className="vertical-line"><div className="vl black"></div></div>
+            <div className="vertical-line"><div className="vl pink"></div></div>
+            <div className="vertical-line"><div className="vl black"></div></div>
+            <div className="vertical-line"><div className="vl black"></div></div>
+            <div className="vertical-line"><div className="vl black"></div><div className="vl black"></div></div>
+            <div className="vertical-line"><div className="vl black"></div></div>
+          </div>
         </div>
         {/* <input type="text" placeholder="sa"/>
         <h1>{counter}</h1>
